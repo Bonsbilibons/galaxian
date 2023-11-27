@@ -1,0 +1,3 @@
+﻿  Galaxian.cpp
+C:\Users\HP\source\repos\C++Shag\Galaxian\Galaxian\Galaxian.cpp(436,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+  Galaxian.vcxproj -> C:\Users\HP\source\repos\C++Shag\Galaxian\x64\Debug\Galaxian.exe
