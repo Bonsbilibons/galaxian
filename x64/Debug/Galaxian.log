@@ -1,3 +1,4 @@
 ﻿  Galaxian.cpp
-C:\Users\HP\source\repos\C++Shag\Galaxian\Galaxian\Galaxian.cpp(436,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\HP\source\repos\C++Shag\Galaxian\Galaxian\Galaxian.cpp(428,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+C:\Users\HP\source\repos\C++Shag\Galaxian\Galaxian\Galaxian.cpp(874,5): warning C4102: 'newCercle': unreferenced label
   Galaxian.vcxproj -> C:\Users\HP\source\repos\C++Shag\Galaxian\x64\Debug\Galaxian.exe

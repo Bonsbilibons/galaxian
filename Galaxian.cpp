@@ -262,55 +262,33 @@ void ShootFromEnemy(int* maze[], int& height, int& width, EnemyShip& Enemy, Enem
     }
 }
 
-
-
-mutex targetMutex;
-void GenerateEnemy(int* maze[], EnemyShip& target)
-{
-    //lock_guard<mutex> lock(targetMutex);
-    cout << target.X << "\n" << target.Y;
-    EnemyShip* enemy = new EnemyShip;
-    enemy->health = 100;
-    enemy->X = 70;
-    enemy->Y = 10;
-    enemy->colour = RED;
-    enemy->model = E_FIGHTER;
-    maze[enemy->Y][enemy->X] = ENEMY;
-    while (enemy->health > 0)
-    {
-        //lock_guard<mutex> lock(targetMutex);
-        if ((target.X == enemy->X) && (target.Y - 1 == enemy->Y))
-        {
-            enemy->health -= 50;
-            break;
-        }
-        SetCursor(enemy->X, enemy->Y, enemy->colour, enemy->model);
-    }
-    GenerateAndDrawStar(maze, enemy->X, enemy->Y);
-    maze[enemy->Y][enemy->X] = SPACE;
-    delete enemy;
-}
-
-void SpawnEnemyLoop(int* maze[], EnemyShip& target)
-{
-    int i = 0;
-    while (i != 10)
-    {
-        future<void> result = async(launch::async, GenerateEnemy, ref(maze), ref(target));
-        //thread GenerateEnemyThread(GenerateEnemy, ref(maze), ref(target));
-        this_thread::sleep_for(chrono::seconds(100));
-        i++;
-    }
-    //future<void> result = async(launch::async, GenerateEnemy, ref(maze), ref(target));
-    //GenerateEnemy(maze, target);
-    
-}
-
-void GenerateEnemies(int* maze[], EnemyShip* quarter, int count_of_enemies)
+void GenerateEnemies(int* maze[], EnemyShip* quarter, int count_of_enemies, int GameDifficulty, EnemyShip& enemy_target)
 {
     for (int i = 0; i < count_of_enemies; i++)
     {
-        quarter[i].health = 100;
+        switch (GameDifficulty)
+        {
+        case 1:
+        {
+            quarter[i].health = 50;
+            enemy_target.demage = 25;
+            break;
+        }
+        case 2:
+        {
+            quarter[i].health = 100;
+            enemy_target.demage = 50;
+            break;
+        }
+        case 3:
+        {
+            quarter[i].health = 150;
+            enemy_target.demage = 100;
+            break;
+        }
+        default:
+            break;
+        }
         quarter[i].X = 20 + (rand() & 80);
         quarter[i].Y = 1 + (rand() % 10);
         for (int j = 0; j < i; j++)
@@ -431,6 +409,20 @@ void EnemyShootingLoop(int* maze[], int& height, int& width, EnemyShip* quarter,
     }
 }
 
+bool IsAllEnemiesDefeated(EnemyShip* quarter, int& count_of_enemies)
+{
+    int common_health = 0;
+    for (int i = 0; i < count_of_enemies; i++) {
+        common_health += quarter[i].health;
+    }
+
+    if (common_health < 0)
+    {
+        return true;
+    }
+    return false;
+}
+
 int main() {
     /* project setings */
     srand(time(0));
@@ -458,11 +450,10 @@ int main() {
     /* ______ */
 
     /* Sound Settings*/
-    /*sf::SoundBuffer FarFarBuffer;
+    sf::SoundBuffer FarFarBuffer;
     FarFarBuffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/StarWarsIntro.mp3");
     sf::Sound FarFarMusic(FarFarBuffer);
     FarFarMusic.setVolume(5);
-    FarFarMusic.play();*/
 
     sf::SoundBuffer ChooseBuffer;
     ChooseBuffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/GameMenuSelectSound.wav");
@@ -478,6 +469,38 @@ int main() {
     BlusterV2Buffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/BlasterShotV2.wav");
     sf::Sound BlasterV2(BlusterV2Buffer);
     BlasterV2.setVolume(50);
+
+    sf::SoundBuffer DuelOfTheFatesBuffer;
+    DuelOfTheFatesBuffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/DuelOfTheFates.wav");
+    sf::Sound DuelOfTheFates(DuelOfTheFatesBuffer);
+    DuelOfTheFates.setVolume(50);
+
+    sf::SoundBuffer BattleOfTheHeroesSuiteBuffer;
+    BattleOfTheHeroesSuiteBuffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/BattleOfTheHeroesSuite.wav");
+    sf::Sound BattleOfTheHeroesSuite(BattleOfTheHeroesSuiteBuffer);
+    BattleOfTheHeroesSuite.setVolume(50);
+    
+    sf::SoundBuffer TheAsteroidFieldBuffer;
+    TheAsteroidFieldBuffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/TheAsteroidField.wav");
+    sf::Sound TheAsteroidField(TheAsteroidFieldBuffer);
+    TheAsteroidField.setVolume(50);
+    
+    sf::SoundBuffer TheForceSuiteBuffer;
+    TheForceSuiteBuffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/TheForceSuite.wav");
+    sf::Sound TheForceSuite(TheForceSuiteBuffer);
+    TheForceSuite.setVolume(50);
+    
+    sf::SoundBuffer AcrossTheStarsBuffer;
+    AcrossTheStarsBuffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/AcrossTheStars.wav");
+    sf::Sound AcrossTheStars(AcrossTheStarsBuffer);
+    AcrossTheStars.setVolume(50);
+    
+    sf::SoundBuffer CantinaBandBuffer;
+    CantinaBandBuffer.loadFromFile("C:/Users/HP/source/repos/C++Shag/Galaxian/audio/CantinaBand.wav");
+    sf::Sound CantinaBand(CantinaBandBuffer);
+    CantinaBand.setVolume(50);
+
+
 
     /* ___________ */
 
@@ -521,11 +544,13 @@ int main() {
         return 0;
     }
 
+    FarFarMusic.play();
+
 
     /* End of start menu */
 
     /* Opening animation */
-    /*string StarWarsTitle[] = {
+    string StarWarsTitle[] = {
     "         Striving to fix bugs, but not always does success bestow.        ",
     "      With each loop, it becomes more intriguing, debugging is an art,    ",
     "  They leave comments and gather 'pushes' on GitHub, playing their part.  ",
@@ -548,12 +573,12 @@ int main() {
         Sleep(2500);
     }
 
-    Sleep(6000);*/
+    Sleep(6000);
     
 
     GenerateAndDrawStars(maze, 1, width - 1, 1, height - 1);
 
-    /*string Space_Ship[] = {
+    string Space_Ship[] = {
     "        /\\",
     "       /  \\",
     "      /    \\",
@@ -575,15 +600,15 @@ int main() {
         Sleep(1000);
     }
 
-    Sleep(6000);*/
+    Sleep(6000);
     
 
     /* end of opening animation */
 
 
-    /*GenerateAndDrawStars(maze, 103, width - 1, 1, height - 1);
+    GenerateAndDrawStars(maze, 103, width - 1, 1, height - 1);
     GenerateAndDrawStars(maze, 75, width - 1, 16, height - 1);
-    DrawBarrier(maze, height, width);*/
+    DrawBarrier(maze, height, width);
 
 
     /* main menu  */
@@ -627,6 +652,10 @@ int main() {
 
     GenerateAndDrawStars(maze, 15, 50, 13, 15);
 
+    choosing_of_game_difficulty:
+
+    int GameDifficulty;
+
     choose = 0;
     SetCursor(15, 13, YELLOW, "HARD");
     SetCursor(15, 14, YELLOW, "MIDDLE");
@@ -665,6 +694,7 @@ int main() {
         }
         Choose.play();
     }
+    GameDifficulty = choose;
 
     if (choose == 4) {
         system("taskkill /F /IM Galaxian_alpha.exe");
@@ -775,12 +805,56 @@ int main() {
     /* start of game logic  */
 
     MainShip.score = 0;
+    MainShip.X = 60;
+    MainShip.Y = 15;
+    int count_of_enemies = 10;
+    
+start_of_game:
+    short randMusic = rand() % 2;
+    switch (GameDifficulty)
+    {
+    case 1:
+    {
+        if (randMusic == 0)
+        {
+            AcrossTheStars.play();
+        }
+        else {
+            CantinaBand.play();
+        }
+        break;
+    }
+    case 2:
+    {
+        if (randMusic == 0)
+        {
+            TheForceSuite.play();
+        }
+        else {
+            TheAsteroidField.play();
+        }
+        break;
+    }
+    case 3:
+    {
+        if (randMusic == 0)
+        {
+            BattleOfTheHeroesSuite.play();
+        }
+        else {
+            DuelOfTheFates.play();
+        }
+        break;
+    }
+    default:
+        break;
+    }
+
     MainShip.demage = 55;
     MainShip.health = 100;
     MainShip.shield = false;
 
-    MainShip.X = 60;
-    MainShip.Y = 15;
+    
     int action = 0;
 
     maze[MainShip.Y][MainShip.X] = HERO;
@@ -794,14 +868,11 @@ int main() {
     EnemyShip enemy_target;
     enemy_target.X = 0;
     enemy_target.Y = 0;
-    enemy_target.demage = 25;
-    //thread SpawnEnemyThread(SpawnEnemyLoop, ref(maze) , ref(target));
-    //async(launch::async, SpawnEnemyLoop, ref(maze) , ref(target));
 
-
-    int count_of_enemies = 10;
     EnemyShip* quarter = new EnemyShip[count_of_enemies];
-    GenerateEnemies(maze, quarter, count_of_enemies);
+
+    newCercle:
+    GenerateEnemies(maze, quarter, count_of_enemies, GameDifficulty, enemy_target);
     ShowEnemies(maze, quarter, count_of_enemies);
 
     while (MainShip.health > 0)
@@ -845,7 +916,6 @@ int main() {
                 action = 0;
                 ShootFromShip(maze, height, width, MainShip, target);
                 MainShip.score += CheckTheHits(maze, quarter, count_of_enemies, target);
-                //future<void> result = async(launch::async, ShootFromShip, maze, ref(height), ref(width), ref(MainShip), ref(target));
             }
         }
         else
@@ -859,26 +929,57 @@ int main() {
                     EnemyShootingLoop(maze, height, width, quarter, count_of_enemies, MainShip, enemy_target);
                     });
                 EnemyShootingLoopThread.join();
-                /*for (int i = 0; i < count_of_enemies; i++)
-                {
-                    if (quarter[i].health > 0)
-                    {
-                        bool is_shooting = rand() % 2;
-                        if (is_shooting)
-                        {
-                            enemy_target.X = 0;
-                            enemy_target.Y = 0;
-                            ShootFromEnemy(maze, height, width, quarter[i], enemy_target);
-                            CheckTheHitsFromEnemy(maze, MainShip, enemy_target);
-                        }
-                    }
-                }*/
             } 
         }
-}
+        if (IsAllEnemiesDefeated(quarter, count_of_enemies))
+        {
+            count_of_enemies += 5;
+            goto start_of_game;
+        }
+    }
 
-    //SpawnEnemyThread.join();
-   
+
+    choose = 0;
+    SetCursor(59, 12, YELLOW, "GAME OVER!");
+    SetCursor(59, 13, YELLOW, "NEW GAME");
+    SetCursor(59, 14, YELLOW, "  EXIT");
+    cursor.X = 58;
+    cursor.Y = 13;
+    SetCursor(cursor.X, cursor.Y, BLUE, ">");
+
+    while (choose == 0) {
+        int code = _getch();
+        if (code == 224) {
+            code = _getch();
+        }
+        if (code == DOWN and cursor.Y == 13) {
+            SetCursor(cursor.X, cursor.Y, BLUE, " ");
+            cursor.Y++;
+            SetCursor(cursor.X, cursor.Y, BLUE, ">");
+        }
+        if (code == UP and cursor.Y == 14) {
+            SetCursor(cursor.X, cursor.Y, BLUE, " ");
+            cursor.Y--;
+            SetCursor(cursor.X, cursor.Y, BLUE, ">");
+        }
+        if (code == ENTER and cursor.Y == 13) {
+            choose = 1;
+        }
+        if (code == ENTER and cursor.Y == 14) {
+            choose = 2;
+        }
+        Choose.play();
+    }
+
+    if (choose == 1) {
+        GenerateAndDrawStars(maze, 1, width - 1, 1, height - 1);
+        goto choosing_of_game_difficulty;
+    }
+    if (choose == 2) {
+        system("taskkill /F /IM Galaxian_alpha.exe");
+        return 0;
+    }
+
 
     Sleep(INFINITE);
 }
